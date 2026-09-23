@@ -7,6 +7,7 @@ import { JsonHouseRepository } from './json/json-house-repository.js';
 import { JsonContractRepository } from './json/json-contract-repository.js';
 import { JsonTransactionRepository } from './json/json-transaction-repository.js';
 import { JsonCarRepository } from './json/json-car-repository.js';
+import { JsonAssetRepository } from './json/json-asset-repository.js';
 import { JsonSettingsRepository } from './json/json-settings-repository.js';
 import { DocumentStore } from './document-store.js';
 import { createConnection } from './sqlite/connection.js';
@@ -15,6 +16,7 @@ import { SqliteHouseRepository } from './sqlite/sqlite-house-repository.js';
 import { SqliteContractRepository } from './sqlite/sqlite-contract-repository.js';
 import { SqliteTransactionRepository } from './sqlite/sqlite-transaction-repository.js';
 import { SqliteCarRepository } from './sqlite/sqlite-car-repository.js';
+import { SqliteAssetRepository } from './sqlite/sqlite-asset-repository.js';
 
 export async function createRepositories(config) {
   const settings = new JsonSettingsRepository(config.settingsPath);
@@ -39,12 +41,14 @@ async function createJsonRepositories(config) {
   const members = new JsonCollection(path.join(config.dataDir, 'members.json'));
   const houses = new JsonCollection(path.join(config.dataDir, 'houses.json'));
   const cars = new JsonCollection(path.join(config.dataDir, 'cars.json'));
+  const assets = new JsonCollection(path.join(config.dataDir, 'assets.json'));
   const contracts = new JsonCollection(path.join(config.dataDir, 'contracts.json'));
   const transactions = new JsonCollection(path.join(config.dataDir, 'transactions.json'));
 
   await members.seed(seedData.members);
   await houses.seed(seedData.houses);
   await cars.seed([]);
+  await assets.seed([]);
   await contracts.seed(seedData.contracts.map((c) => ({ amountType: 'fixed', vatRate: 0.21, withholdingRate: 0.15, ...c })));
   await transactions.seed([]);
 
@@ -55,6 +59,7 @@ async function createJsonRepositories(config) {
     members: new JsonMemberRepository(members),
     houses: new JsonHouseRepository(houses),
     cars: new JsonCarRepository(cars),
+    assets: new JsonAssetRepository(assets),
     contracts: new JsonContractRepository(contracts),
     transactions: new JsonTransactionRepository(transactions),
   };
@@ -133,6 +138,7 @@ function createSqliteRepositories(config) {
     members: new SqliteMemberRepository(db),
     houses: new SqliteHouseRepository(db),
     cars: new SqliteCarRepository(db),
+    assets: new SqliteAssetRepository(db),
     contracts: new SqliteContractRepository(db),
     transactions: new SqliteTransactionRepository(db),
   };

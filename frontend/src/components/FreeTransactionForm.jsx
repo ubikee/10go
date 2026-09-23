@@ -4,6 +4,9 @@ import { DIRECTIONS, EXPENSE_CATEGORIES } from '../lib/constants.js';
 export function FreeTransactionForm({ cars, houses, members, defaultCarId, defaultHouseId, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     amount: '',
+    baseAmount: '',
+    vatPercent: 21,
+    deducible: false,
     direction: 'expense',
     date: new Date().toISOString().slice(0, 10),
     category: '',
@@ -14,12 +17,15 @@ export function FreeTransactionForm({ cars, houses, members, defaultCarId, defau
     notes: '',
   });
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [key]: key === 'deducible' ? e.target.checked : value }));
+  };
 
   const submit = (e) => {
     e.preventDefault();
+    const deducible = form.deducible;
     onSubmit({
-      amount: Number(form.amount),
       direction: form.direction,
       date: form.date,
       category: form.category || null,
@@ -28,15 +34,36 @@ export function FreeTransactionForm({ cars, houses, members, defaultCarId, defau
       memberId: form.memberId || null,
       counterparty: form.counterparty || null,
       notes: form.notes || null,
+      amount: deducible ? null : (form.amount !== '' ? Number(form.amount) : null),
+      baseAmount: deducible ? (form.baseAmount !== '' ? Number(form.baseAmount) : null) : null,
+      vatRate: deducible ? form.vatPercent / 100 : null,
     });
   };
+
+  const total = form.deducible && form.baseAmount !== ''
+    ? Number(form.baseAmount) * (1 + form.vatPercent / 100)
+    : null;
 
   return (
     <form className="form" onSubmit={submit}>
       <div className="form__grid">
-        <label className="field"><span>Importe</span>
-          <input required type="number" step="0.01" min="0" value={form.amount} onChange={set('amount')} />
-        </label>
+        {form.deducible ? (
+          <>
+            <label className="field"><span>Base imponible</span>
+              <input required type="number" step="0.01" min="0" value={form.baseAmount} onChange={set('baseAmount')} />
+            </label>
+            <label className="field"><span>IVA %</span>
+              <input type="number" min="0" max="100" step="1" value={form.vatPercent} onChange={set('vatPercent')} />
+            </label>
+            <label className="field"><span>Total (con IVA)</span>
+              <input disabled value={total != null ? total.toFixed(2) : '—'} />
+            </label>
+          </>
+        ) : (
+          <label className="field"><span>Importe</span>
+            <input required type="number" step="0.01" min="0" value={form.amount} onChange={set('amount')} />
+          </label>
+        )}
         <label className="field"><span>Dirección</span>
           <select value={form.direction} onChange={set('direction')}>
             {DIRECTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
@@ -74,6 +101,10 @@ export function FreeTransactionForm({ cars, houses, members, defaultCarId, defau
         </label>
         <label className="field field--full"><span>Notas</span>
           <textarea rows={2} value={form.notes} onChange={set('notes')} />
+        </label>
+        <label className="field field--full checkbox-label">
+          <input type="checkbox" checked={form.deducible} onChange={set('deducible')} />
+          <span>Gasto deducible (con IVA soportado)</span>
         </label>
       </div>
       <div className="form__actions">

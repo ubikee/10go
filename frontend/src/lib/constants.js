@@ -70,6 +70,21 @@ export const EXPENSE_CATEGORIES = [
   'otros',
 ];
 
+export const ASSET_CATEGORIES = [
+  { value: 'informatica', label: 'Informática', rate: 0.26 },
+  { value: 'mobiliario', label: 'Mobiliario y enseres', rate: 0.10 },
+  { value: 'maquinaria', label: 'Maquinaria', rate: 0.12 },
+  { value: 'vehiculo', label: 'Vehículo', rate: 0.16 },
+  { value: 'herramientas', label: 'Herramientas y útiles', rate: 0.30 },
+  { value: 'otros', label: 'Otros', rate: 0.12 },
+];
+
+export const ASSET_STATUSES = [
+  { value: 'active', label: 'Activo' },
+  { value: 'amortized', label: 'Amortizado' },
+  { value: 'sold', label: 'Vendido' },
+];
+
 export const LABELS = {
   type: Object.fromEntries(CONTRACT_TYPES.map((t) => [t.value, t.label])),
   role: Object.fromEntries(CONTRACT_ROLES.map((t) => [t.value, t.label])),

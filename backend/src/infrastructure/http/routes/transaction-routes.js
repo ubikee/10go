@@ -14,6 +14,8 @@ export function transactionRoutes({ transactionService }) {
     const transaction = await transactionService.createFree({
       direction: req.body.direction,
       amount: req.body.amount,
+      baseAmount: req.body.baseAmount,
+      vatRate: req.body.vatRate,
       date: req.body.date,
       invoiceNumber: req.body.invoiceNumber,
       counterparty: req.body.counterparty,

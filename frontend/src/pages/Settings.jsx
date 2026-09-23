@@ -42,6 +42,32 @@ export default function Settings() {
     }
   };
 
+  const updateBracket = (index, field, value) => {
+    setSettings((s) => {
+      const next = structuredClone(s);
+      const brackets = next.irpf.brackets;
+      if (field === 'upTo') brackets[index].upTo = value === '' ? null : Number(value);
+      else brackets[index].rate = value === '' ? 0 : Number(value) / 100;
+      return next;
+    });
+  };
+
+  const addBracket = () => {
+    setSettings((s) => {
+      const next = structuredClone(s);
+      next.irpf.brackets.splice(Math.max(0, next.irpf.brackets.length - 1), 0, { upTo: null, rate: 0 });
+      return next;
+    });
+  };
+
+  const removeBracket = (index) => {
+    setSettings((s) => {
+      const next = structuredClone(s);
+      if (next.irpf.brackets.length > 1) next.irpf.brackets.splice(index, 1);
+      return next;
+    });
+  };
+
   if (!settings) return <div className="page"><p className="muted">Cargando configuración…</p></div>;
 
   const ocr = settings.invoiceOcr;
@@ -110,6 +136,66 @@ export default function Settings() {
         </div>
 
         <div className="form__actions">
+          <button type="button" className="btn btn--primary" onClick={save}>Guardar configuración</button>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2 className="card__title">Escala de IRPF (simulación)</h2>
+        <p className="muted small">
+          Tramos usados para la simulación de IRPF de la página de Impuestos. El último tramo (sin
+          límite) aplica al resto.
+        </p>
+        <div className="form__grid">
+          <label className="field">
+            <span>Mínimo personal y familiar (€)</span>
+            <input
+              type="number"
+              min="0"
+              step="100"
+              value={settings.irpf.minimoPersonal ?? 5550}
+              onChange={(e) => patch(['irpf', 'minimoPersonal'], e.target.value === '' ? 0 : Number(e.target.value))}
+            />
+          </label>
+        </div>
+        <table className="table">
+          <thead>
+            <tr><th>Hasta (€)</th><th className="num">Tipo %</th><th className="actions-col" /></tr>
+          </thead>
+          <tbody>
+            {settings.irpf.brackets.map((b, i) => (
+              <tr key={i}>
+                <td>
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    placeholder="Sin límite"
+                    value={b.upTo ?? ''}
+                    onChange={(e) => updateBracket(i, 'upTo', e.target.value)}
+                  />
+                </td>
+                <td className="num">
+                  <input
+                    className="input"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    style={{ width: 90, textAlign: 'right' }}
+                    value={Math.round(b.rate * 1000) / 10}
+                    onChange={(e) => updateBracket(i, 'rate', e.target.value)}
+                  />
+                </td>
+                <td className="actions-col">
+                  <button type="button" className="btn btn--sm btn--danger" onClick={() => removeBracket(i)}>Quitar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="form__actions">
+          <button type="button" className="btn" onClick={addBracket}>+ Añadir tramo</button>
           <button type="button" className="btn btn--primary" onClick={save}>Guardar configuración</button>
         </div>
       </section>

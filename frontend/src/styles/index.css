@@ -375,7 +375,19 @@ a.btn { text-decoration: none; display: inline-block; }
   padding: 6px 16px;
 }
 
+.expandable-row { cursor: pointer; }
+.expandable-row:hover td { background: #f0f7ff; }
+.expand-caret { display: inline-block; width: 14px; color: var(--primary); font-size: 12px; }
+
+.detail-row > td { background: #fafbfd; padding: 0 16px 14px; }
+.table--inner { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.table--inner thead th { background: #f1f5f9; }
+.table--inner td, .table--inner th { padding: 8px 12px; font-size: 13px; }
+
 .inline-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+
+.checkbox-label { flex-direction: row; align-items: center; gap: 8px; font-size: 14px; color: var(--text); }
+.checkbox-label input { width: auto; }
 
 /* Splash / pantalla de bienvenida */
 .splash {

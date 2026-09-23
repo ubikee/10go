@@ -63,6 +63,24 @@ CREATE TABLE IF NOT EXISTS cars (
   updatedAt TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS assets (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  memberId TEXT,
+  acquisitionDate TEXT NOT NULL,
+  baseAmount REAL NOT NULL,
+  vatRate REAL NOT NULL DEFAULT 0.21,
+  vatAmount REAL,
+  amortizationRate REAL NOT NULL DEFAULT 0.12,
+  status TEXT NOT NULL DEFAULT 'active',
+  disposalDate TEXT,
+  notes TEXT,
+  transactionId TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS contracts (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,

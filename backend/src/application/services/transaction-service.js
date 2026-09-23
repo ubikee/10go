@@ -46,6 +46,8 @@ export class TransactionService {
   async createFree({
     direction,
     amount,
+    baseAmount,
+    vatRate,
     date,
     invoiceNumber,
     counterparty,
@@ -55,10 +57,13 @@ export class TransactionService {
     category,
     notes,
   }) {
+    const hasBase = baseAmount != null && baseAmount !== '';
     const transaction = Transaction.create({
       contractId: null,
       direction: direction || 'expense',
-      amount: amount != null && amount !== '' ? Number(amount) : null,
+      amount: hasBase ? null : (amount != null && amount !== '' ? Number(amount) : null),
+      baseAmount: hasBase ? Number(baseAmount) : null,
+      vatRate: hasBase ? (vatRate != null && vatRate !== '' ? Number(vatRate) : 0) : null,
       currency: this.config.currency,
       date: date || new Date().toISOString().slice(0, 10),
       invoiceNumber: invoiceNumber || null,

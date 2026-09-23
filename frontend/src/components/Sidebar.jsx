@@ -4,6 +4,7 @@ const NAV = [
   { path: '/transactions', label: 'Movimientos' },
   { path: '/houses', label: 'Viviendas' },
   { path: '/cars', label: 'Coches' },
+  { path: '/assets', label: 'Bienes' },
   { path: '/members', label: 'Miembros' },
   { path: '/forecast', label: 'Previsión' },
   { path: '/taxes', label: 'Impuestos' },

@@ -21,6 +21,7 @@ export default function MemberDetail({ memberId, navigate }) {
   const [transactions, setTransactions] = useState([]);
   const [forecast, setForecast] = useState(null);
   const [taxes, setTaxes] = useState(null);
+  const [assets, setAssets] = useState([]);
   const [cars, setCars] = useState([]);
   const [houses, setHouses] = useState([]);
   const [members, setMembers] = useState([]);
@@ -40,16 +41,18 @@ export default function MemberDetail({ memberId, navigate }) {
       api.get('/transactions'),
       api.get(`/members/${memberId}/forecast?months=12`),
       api.get(`/taxes?year=${year}&memberId=${memberId}`),
+      api.get('/assets'),
       api.get('/cars'),
       api.get('/houses'),
       api.get('/members'),
     ])
-      .then(([m, ct, tx, f, tax, cars, hs, ms]) => {
+      .then(([m, ct, tx, f, tax, assets, cars, hs, ms]) => {
         setMember(m);
         setContracts(ct);
         setTransactions(tx);
         setForecast(f);
         setTaxes(tax);
+        setAssets(assets);
         setCars(cars);
         setHouses(hs);
         setMembers(ms);
@@ -63,6 +66,7 @@ export default function MemberDetail({ memberId, navigate }) {
 
   const memberContracts = contracts.filter((c) => c.memberId === memberId);
   const memberTransactions = transactions.filter((t) => t.memberId === memberId);
+  const memberAssets = assets.filter((a) => a.memberId === memberId);
   const totalGastos = memberTransactions.filter((t) => t.direction === 'expense').reduce((a, b) => a + (Number(b.amount) || 0), 0);
   const totalIngresos = memberTransactions.filter((t) => t.direction === 'income').reduce((a, b) => a + (b.baseAmount != null ? Number(b.baseAmount) : (Number(b.amount) || 0)), 0);
 
@@ -134,8 +138,8 @@ export default function MemberDetail({ memberId, navigate }) {
       <section className="stats-grid">
         <div className="stat-card"><span className="stat-card__label">Contratos</span><span className="stat-card__value">{memberContracts.length}</span></div>
         <div className="stat-card"><span className="stat-card__label">Movimientos</span><span className="stat-card__value">{memberTransactions.length}</span></div>
-        <div className="stat-card stat-card--positive"><span className="stat-card__label">Ingresos netos (año)</span><span className="stat-card__value">{formatMoney(taxes?.totals?.net ?? 0, currency)}</span></div>
-        <div className="stat-card stat-card--negative"><span className="stat-card__label">IVA a pagar (año)</span><span className="stat-card__value">{formatMoney(taxes?.totals?.vat ?? 0, currency)}</span></div>
+        <div className="stat-card stat-card--positive"><span className="stat-card__label">Rendimiento neto (año)</span><span className="stat-card__value">{formatMoney(taxes?.totals?.rendimientoNeto ?? 0, currency)}</span></div>
+        <div className="stat-card stat-card--negative"><span className="stat-card__label">IVA a pagar (año)</span><span className="stat-card__value">{formatMoney(taxes?.totals?.vatAPagar ?? 0, currency)}</span></div>
       </section>
 
       <div className="two-col">
@@ -163,13 +167,40 @@ export default function MemberDetail({ memberId, navigate }) {
         <section className="card">
           <h2 className="card__title">Impuestos ({new Date().getFullYear()})</h2>
           <dl className="detail-list">
-            <div className="detail-row"><dt className="detail-row__label">Ingresos netos</dt><dd className="detail-row__value positive">{formatMoney(taxes?.totals?.net ?? 0, currency)}</dd></div>
-            <div className="detail-row"><dt className="detail-row__label">IVA repercutido</dt><dd className="detail-row__value negative">{formatMoney(taxes?.totals?.vat ?? 0, currency)}</dd></div>
-            <div className="detail-row"><dt className="detail-row__label">IRPF retenido</dt><dd className="detail-row__value">{formatMoney(taxes?.totals?.withholding ?? 0, currency)}</dd></div>
+            <div className="detail-row"><dt className="detail-row__label">Rendimiento neto</dt><dd className="detail-row__value positive">{formatMoney(taxes?.totals?.rendimientoNeto ?? 0, currency)}</dd></div>
+            <div className="detail-row"><dt className="detail-row__label">IVA a pagar</dt><dd className="detail-row__value negative">{formatMoney(taxes?.totals?.vatAPagar ?? 0, currency)}</dd></div>
+            <div className="detail-row"><dt className="detail-row__label">IRPF retenido</dt><dd className="detail-row__value">{formatMoney(taxes?.totals?.irpfRetenido ?? 0, currency)}</dd></div>
+            <div className="detail-row"><dt className="detail-row__label">Amortización</dt><dd className="detail-row__value">{formatMoney(taxes?.totals?.amortizacion ?? 0, currency)}</dd></div>
             <div className="detail-row"><dt className="detail-row__label">Total gastos</dt><dd className="detail-row__value negative">{formatMoney(totalGastos, currency)}</dd></div>
           </dl>
         </section>
       </div>
+
+      <section className="card card--flush">
+        <div className="card__header">
+          <h2 className="card__title">Bienes de equipo ({memberAssets.length})</h2>
+          <a className="btn btn--sm" href="#/assets">Gestionar</a>
+        </div>
+        {memberAssets.length === 0 ? (
+          <p className="muted" style={{ padding: '0 20px 20px' }}>Este miembro no tiene bienes de equipo.</p>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr><th>Nombre</th><th>Categoría</th><th className="num">Base</th><th className="num">Amort. anual</th></tr>
+            </thead>
+            <tbody>
+              {memberAssets.map((a) => (
+                <tr key={a.id}>
+                  <td>{a.name}</td>
+                  <td className="muted">{a.category}</td>
+                  <td className="num">{formatMoney(a.baseAmount, currency)}</td>
+                  <td className="num">{formatMoney(Number(a.baseAmount) * (Number(a.amortizationRate) || 0), currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
       <section className="card">
         <h2 className="card__title">Histórico y previsiones</h2>

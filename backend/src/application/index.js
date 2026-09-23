@@ -1,4 +1,5 @@
 import { ForecastService } from '../domain/services/forecast-service.js';
+import { AmortizationService } from '../domain/services/amortization-service.js';
 import { MemberService } from './services/member-service.js';
 import { HouseService } from './services/house-service.js';
 import { CarService } from './services/car-service.js';
@@ -8,6 +9,7 @@ import { SettingsService } from './services/settings-service.js';
 import { InvoiceOcrService } from './services/invoice-ocr-service.js';
 import { TransactionService } from './services/transaction-service.js';
 import { TaxService } from './services/tax-service.js';
+import { AssetService } from './services/asset-service.js';
 import { LocalOcrEngine } from '../infrastructure/ocr/local-ocr-engine.js';
 import { GoogleVisionOcrEngine } from '../infrastructure/ocr/google-vision-ocr-engine.js';
 
@@ -46,7 +48,21 @@ export function buildContainer({ repositories, config }) {
     config,
   });
 
-  const taxService = new TaxService({ transactionRepository: repositories.transactions });
+  const amortizationService = new AmortizationService();
+
+  const assetService = new AssetService({
+    assetRepository: repositories.assets,
+    transactionService,
+    amortizationService,
+  });
+
+  const taxService = new TaxService({
+    transactionRepository: repositories.transactions,
+    assetRepository: repositories.assets,
+    amortizationService,
+    contractRepository: repositories.contracts,
+    settingsService,
+  });
 
   return {
     memberService,
@@ -59,6 +75,8 @@ export function buildContainer({ repositories, config }) {
     invoiceOcrService,
     transactionService,
     taxService,
+    assetService,
+    amortizationService,
     config,
   };
 }

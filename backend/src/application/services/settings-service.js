@@ -1,5 +1,14 @@
 import { ValidationError } from '../../shared/errors.js';
 
+export const DEFAULT_IRPF_BRACKETS = [
+  { upTo: 12450, rate: 0.19 },
+  { upTo: 20200, rate: 0.24 },
+  { upTo: 35200, rate: 0.30 },
+  { upTo: 60000, rate: 0.37 },
+  { upTo: 300000, rate: 0.45 },
+  { upTo: null, rate: 0.47 },
+];
+
 export const DEFAULT_SETTINGS = {
   invoiceOcr: {
     enabled: true,
@@ -10,6 +19,10 @@ export const DEFAULT_SETTINGS = {
       provider: 'google',
       apiKey: '',
     },
+  },
+  irpf: {
+    minimoPersonal: 5550,
+    brackets: DEFAULT_IRPF_BRACKETS,
   },
 };
 
@@ -43,7 +56,28 @@ export function validateSettings(settings) {
     throw new ValidationError('invoiceOcr.cloud.provider debe ser "google"');
   }
   if (typeof ocr.cloud.apiKey !== 'string') throw new ValidationError('invoiceOcr.cloud.apiKey debe ser texto');
+  validateIrpf(settings.irpf);
   return settings;
+}
+
+function validateIrpf(irpf) {
+  if (!isObject(irpf) || !Array.isArray(irpf.brackets) || irpf.brackets.length === 0) {
+    throw new ValidationError('Configuración irpf.brackets inválida');
+  }
+  const minimo = Number(irpf.minimoPersonal);
+  if (irpf.minimoPersonal == null || Number.isNaN(minimo) || minimo < 0) {
+    throw new ValidationError('irpf.minimoPersonal debe ser un número positivo');
+  }
+  for (const bracket of irpf.brackets) {
+    if (!isObject(bracket)) throw new ValidationError('Tramo de IRPF inválido');
+    if (bracket.upTo != null && (Number.isNaN(Number(bracket.upTo)) || Number(bracket.upTo) <= 0)) {
+      throw new ValidationError('El límite del tramo de IRPF debe ser un número positivo');
+    }
+    const rate = Number(bracket.rate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 1) {
+      throw new ValidationError('El tipo del tramo de IRPF debe estar entre 0 y 1');
+    }
+  }
 }
 
 export class SettingsService {

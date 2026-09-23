@@ -16,12 +16,14 @@ import Cars from './pages/Cars.jsx';
 import CarDetail from './pages/CarDetail.jsx';
 import HouseDetail from './pages/HouseDetail.jsx';
 import MemberDetail from './pages/MemberDetail.jsx';
+import Assets from './pages/Assets.jsx';
 
 const PAGES = {
   '/': Dashboard,
   '/contracts': Contracts,
   '/cars': Cars,
   '/houses': Houses,
+  '/assets': Assets,
   '/members': Members,
   '/forecast': Forecast,
   '/taxes': Taxes,
