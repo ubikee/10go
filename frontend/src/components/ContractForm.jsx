@@ -6,10 +6,11 @@ import {
   RECURRENCES,
   CONTRACT_STATUSES,
   SUPPLY_SUBTYPES,
+  AMOUNT_TYPES,
 } from '../lib/constants.js';
 
 function defaultDirection(type, role) {
-  if (type === 'employment') return 'income';
+  if (type === 'employment' || type === 'freelance') return 'income';
   if (type === 'rental') {
     if (role === 'landlord') return 'income';
     if (role === 'tenant') return 'expense';
@@ -19,30 +20,40 @@ function defaultDirection(type, role) {
   return '';
 }
 
-export function ContractForm({ initial, houses, members, currency, onSubmit, onCancel }) {
-  const [form, setForm] = useState(() => ({
-    name: initial?.name ?? '',
-    type: initial?.type ?? 'supply',
-    subtype: initial?.subtype ?? '',
-    role: initial?.role ?? '',
-    direction: initial?.direction ?? defaultDirection(initial?.type ?? 'supply', initial?.role ?? ''),
-    amount: initial?.amount ?? '',
-    currency: initial?.currency ?? currency,
-    recurrence: initial?.recurrence ?? 'monthly',
-    startDate: initial?.startDate ?? new Date().toISOString().slice(0, 10),
-    endDate: initial?.endDate ?? '',
-    paymentDay: initial?.paymentDay ?? 1,
-    houseId: initial?.houseId ?? '',
-    memberId: initial?.memberId ?? '',
-    status: initial?.status ?? 'active',
-    notes: initial?.notes ?? '',
-  }));
+export function ContractForm({ initial, houses, cars, members, currency, onSubmit, onCancel }) {
+  const [form, setForm] = useState(() => {
+    const type = initial?.type ?? 'supply';
+    return {
+      name: initial?.name ?? '',
+      type,
+      subtype: initial?.subtype ?? '',
+      role: initial?.role ?? '',
+      direction: initial?.direction ?? defaultDirection(type, initial?.role ?? ''),
+      amountType: initial?.amountType ?? (type === 'freelance' ? 'variable' : 'fixed'),
+      amount: initial?.amount ?? '',
+      vatPercent: Math.round((initial?.vatRate ?? 0.21) * 100),
+      withholdingPercent: Math.round((initial?.withholdingRate ?? 0.15) * 100),
+      currency: initial?.currency ?? currency,
+      recurrence: initial?.recurrence ?? 'monthly',
+      startDate: initial?.startDate ?? new Date().toISOString().slice(0, 10),
+      endDate: initial?.endDate ?? '',
+      paymentDay: initial?.paymentDay ?? 1,
+      houseId: initial?.houseId ?? '',
+      carId: initial?.carId ?? '',
+      memberId: initial?.memberId ?? '',
+      status: initial?.status ?? 'active',
+      notes: initial?.notes ?? '',
+    };
+  });
 
   const set = (key) => (e) => {
     const value = e.target.value;
     setForm((f) => {
       const next = { ...f, [key]: value };
-      if (key === 'type') next.direction = defaultDirection(value, f.role);
+      if (key === 'type') {
+        next.direction = defaultDirection(value, f.role);
+        if (value === 'freelance') next.amountType = 'variable';
+      }
       if (key === 'role') next.direction = defaultDirection(f.type, value);
       return next;
     });
@@ -52,15 +63,20 @@ export function ContractForm({ initial, houses, members, currency, onSubmit, onC
     e.preventDefault();
     onSubmit({
       ...form,
-      amount: Number(form.amount),
+      amount: form.amount === '' ? null : Number(form.amount),
+      vatRate: form.vatPercent / 100,
+      withholdingRate: form.withholdingPercent / 100,
       paymentDay: form.paymentDay === '' ? null : Number(form.paymentDay),
       endDate: form.endDate || null,
       houseId: form.houseId || null,
+      carId: form.carId || null,
       memberId: form.memberId || null,
       subtype: form.subtype || null,
       role: form.role || null,
     });
   };
+
+  const isVariable = form.amountType === 'variable';
 
   return (
     <form className="form" onSubmit={submit}>
@@ -74,6 +90,13 @@ export function ContractForm({ initial, houses, members, currency, onSubmit, onC
           <span>Tipo</span>
           <select value={form.type} onChange={set('type')}>
             {CONTRACT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Importe</span>
+          <select value={form.amountType} onChange={set('amountType')}>
+            {AMOUNT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </label>
 
@@ -105,8 +128,15 @@ export function ContractForm({ initial, houses, members, currency, onSubmit, onC
         </label>
 
         <label className="field">
-          <span>Importe</span>
-          <input required type="number" min="0" step="0.01" value={form.amount} onChange={set('amount')} />
+          <span>{isVariable ? 'Importe estimado (opcional)' : 'Importe'}</span>
+          <input
+            required={!isVariable}
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.amount}
+            onChange={set('amount')}
+          />
         </label>
 
         <label className="field">
@@ -114,17 +144,34 @@ export function ContractForm({ initial, houses, members, currency, onSubmit, onC
           <input value={form.currency} onChange={set('currency')} />
         </label>
 
-        <label className="field">
-          <span>Recurrencia</span>
-          <select value={form.recurrence} onChange={set('recurrence')}>
-            {RECURRENCES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-        </label>
+        {form.type === 'freelance' && (
+          <>
+            <label className="field">
+              <span>IVA % (por defecto)</span>
+              <input type="number" min="0" max="100" step="1" value={form.vatPercent} onChange={set('vatPercent')} />
+            </label>
+            <label className="field">
+              <span>IRPF % (por defecto)</span>
+              <input type="number" min="0" max="100" step="1" value={form.withholdingPercent} onChange={set('withholdingPercent')} />
+            </label>
+          </>
+        )}
 
-        <label className="field">
-          <span>Día de pago</span>
-          <input type="number" min="1" max="31" value={form.paymentDay} onChange={set('paymentDay')} />
-        </label>
+        {!isVariable && (
+          <label className="field">
+            <span>Recurrencia</span>
+            <select value={form.recurrence} onChange={set('recurrence')}>
+              {RECURRENCES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </label>
+        )}
+
+        {!isVariable && (
+          <label className="field">
+            <span>Día de pago</span>
+            <input type="number" min="1" max="31" value={form.paymentDay} onChange={set('paymentDay')} />
+          </label>
+        )}
 
         <label className="field">
           <span>Inicio</span>
@@ -141,6 +188,14 @@ export function ContractForm({ initial, houses, members, currency, onSubmit, onC
           <select value={form.houseId} onChange={set('houseId')}>
             <option value="">—</option>
             {houses.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Coche</span>
+          <select value={form.carId} onChange={set('carId')}>
+            <option value="">—</option>
+            {cars.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
 

@@ -79,7 +79,7 @@ export default function Members() {
                 <tr key={m.id}>
                   <td>
                     <div className="cell-main">
-                      <span className="cell-main__title">{m.name}</span>
+                      <span className="cell-main__title"><a className="link" href={`#/members/${m.id}`}>{m.name}</a></span>
                       {m.notes && <span className="muted small">{m.notes}</span>}
                     </div>
                   </td>

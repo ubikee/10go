@@ -2,6 +2,7 @@ import { Direction, RecurrenceType, ContractStatus } from '../../domain/enums.js
 import { ForecastService } from '../../domain/services/forecast-service.js';
 
 function monthlyAmount(contract) {
+  if (contract.amount == null) return null;
   const amount = Number(contract.amount);
   switch (contract.recurrence) {
     case RecurrenceType.MONTHLY: return amount;

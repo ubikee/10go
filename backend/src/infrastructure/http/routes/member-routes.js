@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import { asyncHandler } from '../middleware/async-handler.js';
 
-export function memberRoutes({ memberService }) {
+export function memberRoutes({ memberService, contractService, forecastService }) {
   const router = Router();
 
   router.get('/', asyncHandler(async (req, res) => {
     res.json(await memberService.list());
+  }));
+
+  router.get('/:id/forecast', asyncHandler(async (req, res) => {
+    const months = Math.max(1, Math.min(60, Number.parseInt(req.query.months, 10) || 12));
+    await memberService.get(req.params.id);
+    const contracts = await contractService.listByMember(req.params.id);
+    res.json(forecastService.forecast(contracts, { months }));
   }));
 
   router.get('/:id', asyncHandler(async (req, res) => {

@@ -8,4 +8,13 @@ dist/
 backend/data/*.json
 backend/data/*.sqlite
 backend/data/*.sqlite-*
+backend/data/invoices/
+backend/data/ocr-cache/
 !backend/data/.gitkeep
+
+# Caché de idioma del OCR (Tesseract)
+*.traineddata
+*.traineddata.gz
+
+# Paquetes autocontenidos generados
+release/

@@ -72,7 +72,7 @@ export default function Houses() {
                 <tr key={h.id}>
                   <td>
                     <div className="cell-main">
-                      <span className="cell-main__title">{h.name}</span>
+                      <span className="cell-main__title"><a className="link" href={`#/houses/${h.id}`}>{h.name}</a></span>
                       {h.notes && <span className="muted small">{h.notes}</span>}
                     </div>
                   </td>

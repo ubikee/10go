@@ -1,11 +1,18 @@
 import { Router } from 'express';
 import { asyncHandler } from '../middleware/async-handler.js';
 
-export function houseRoutes({ houseService }) {
+export function houseRoutes({ houseService, contractService, forecastService }) {
   const router = Router();
 
   router.get('/', asyncHandler(async (req, res) => {
     res.json(await houseService.list());
+  }));
+
+  router.get('/:id/forecast', asyncHandler(async (req, res) => {
+    const months = Math.max(1, Math.min(60, Number.parseInt(req.query.months, 10) || 12));
+    await houseService.get(req.params.id);
+    const contracts = await contractService.listByHouse(req.params.id);
+    res.json(forecastService.forecast(contracts, { months }));
   }));
 
   router.get('/:id', asyncHandler(async (req, res) => {

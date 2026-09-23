@@ -117,6 +117,7 @@ export class ForecastService {
 
     const active = contracts.filter((contract) => {
       if (contract.status && contract.status !== ContractStatus.ACTIVE) return false;
+      if (contract.amount == null) return false;
       const cStart = parseDate(contract.startDate);
       const cEnd = contract.endDate ? parseDate(contract.endDate) : null;
       if (cStart > rangeEnd) return false;
@@ -155,11 +156,11 @@ export class ForecastService {
     }));
 
     const totals = monthsResult.reduce(
-      (acc, m) => ({
-        income: round2(acc.income + m.income),
-        expense: round2(acc.expense + m.expense),
-        net: round2(acc.income - acc.expense),
-      }),
+      (acc, m) => {
+        const income = round2(acc.income + m.income);
+        const expense = round2(acc.expense + m.expense);
+        return { income, expense, net: round2(income - expense) };
+      },
       { income: 0, expense: 0, net: 0 },
     );
 

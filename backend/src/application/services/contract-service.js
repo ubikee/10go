@@ -10,6 +10,21 @@ export class ContractService {
     return this.contractRepository.findAll();
   }
 
+  async listByHouse(houseId) {
+    const all = await this.contractRepository.findAll();
+    return all.filter((c) => c.houseId === houseId);
+  }
+
+  async listByCar(carId) {
+    const all = await this.contractRepository.findAll();
+    return all.filter((c) => c.carId === carId);
+  }
+
+  async listByMember(memberId) {
+    const all = await this.contractRepository.findAll();
+    return all.filter((c) => c.memberId === memberId);
+  }
+
   async get(id) {
     const contract = await this.contractRepository.findById(id);
     if (!contract) throw new NotFoundError(`Contrato ${id} no encontrado`);
