@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+
+# Datos en tiempo de ejecución (JSON/SQLite)
+backend/data/*.json
+backend/data/*.sqlite
+backend/data/*.sqlite-*
+!backend/data/.gitkeep
